@@ -146,7 +146,7 @@ final class FulfillmentModal extends Component
         $this->updateTimeslot();
 
         if ($this->searchQuery && $this->showAddressPicker) {
-            $userLocation = $this->geocodeSearchQuery($this->searchQuery);
+            $userLocation = $this->geocodeUserPosition();
             if ($area = $this->location->current()->searchDeliveryArea($userLocation->getCoordinates())) {
                 $this->location->updateUserPosition($userLocation);
                 $this->location->updateNearbyArea($area);
