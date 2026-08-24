@@ -154,6 +154,7 @@ trait SearchesNearby
     public function onUserPositionUpdated($position = null, $updateMap = false): void
     {
         $this->searchPoint = $position;
+        $this->searchQuery = null;
 
         try {
             $this->geocodeUserPosition();
@@ -241,10 +242,14 @@ trait SearchesNearby
             return;
         }
 
+        if (!is_null($this->searchPoint)) {
+            $this->searchPoint = null;
+            $this->dispatch('resetMap');
+        }
+
         try {
             if (strlen($this->searchQuery) < 3) {
                 $this->isSearching = false;
-                $this->searchPoint = null;
                 $this->dispatch('resetMap');
             } else {
                 $this->isSearching = true;
@@ -334,6 +339,14 @@ trait SearchesNearby
         throw_unless($searchQuery = $this->getSearchQuery(), ValidationException::withMessages([
             $this->searchField => lang('igniter.local::default.alert_no_search_query'),
         ]));
+
+        if (is_array($searchQuery) && filled($this->searchQuery)) {
+            [$latitude, $longitude] = $searchQuery;
+
+            return (new GeoliteLocation($this->geocoder))
+                ->setCoordinates($latitude, $longitude)
+                ->withFormattedAddress($this->searchQuery);
+        }
 
         return is_array($searchQuery)
             ? $this->geocodeSearchPoint($searchQuery)
